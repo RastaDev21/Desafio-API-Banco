@@ -6,6 +6,7 @@ const accountsRoutes = Router();
 
 const accountsController = new AccountsController();
 
-accountsRoutes.post("/:user_id", accountsController);
+accountsRoutes.get("/balance/:id", accountsController.accounts);
+accountsRoutes.post("/addMoney", accountsController.addMoney);
 
-module.exports = accountsController;
+module.exports = accountsRoutes;
