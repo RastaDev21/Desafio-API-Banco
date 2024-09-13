@@ -4,9 +4,12 @@ class AccountsController {
   async balance(request, response) {
     const { id } = request.params;
 
-    const accounts = await knex("accounts").where({ id });
+    const { balance } = await knex("accounts")
+      .where({ id })
+      .select("balance")
+      .first();
 
-    return response.status(201).json(accounts);
+    return response.json(`Seu saldo atual é ${balance}`);
   }
 
   async addMoney(request, response) {
@@ -23,6 +26,15 @@ class AccountsController {
 
   async removeMoney(request, response) {
     const { value, accountNumber } = request.body;
+
+    const { balance } = await knex("accounts")
+      .where({ id: accountNumber })
+      .select("balance")
+      .first();
+
+    if (balance < value) {
+      return response.status(400).json({ error: "Saldo insuficiente." });
+    }
 
     await knex("accounts")
       .where({ id: accountNumber })
@@ -54,6 +66,30 @@ class AccountsController {
     return response.json(
       `Sua conta foi criada com sucesso numero ${accountNumber[0].id}`
     );
+  }
+
+  async accountsUser(request, response) {
+    const { accountNumber } = request.params;
+
+    await knex("accounts").where({ userId: accountNumber });
+
+    // const { accounts } = await knex("accounts")
+    //   .where({ accounts })
+    //   .select("accounts");
+
+    return response.json(accounts);
+
+    // const [userId, balance] = request.params;
+
+    // const accounts = await knex("accounts").where({ userId, balance });
+
+    // return response.json(accounts);
+
+    // const [user_id] = request.params;
+
+    // const accounts = await knex("accounts").where({ user_id });
+
+    // return response.status(201).json(accounts);
   }
 }
 
