@@ -12,5 +12,6 @@ accountsRoutes.post("/removeMoney", accountsController.removeMoney);
 accountsRoutes.delete("/accountsClosure", accountsController.accountClosure);
 accountsRoutes.post("/createAccount", accountsController.createAccount);
 accountsRoutes.get("/accountsUser", accountsController.accountsUser);
+accountsRoutes.post("/transfer", accountsController.transfer);
 
 module.exports = accountsRoutes;

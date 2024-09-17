@@ -18,16 +18,15 @@ class UsersController {
 
     const hashedPassword = await hash(password, 8);
 
-    const account = await database.run(
-      "INSERT INTO accounts (balance) VALUES (?)",
-      [0]
+    const user = await database.run(
+      "INSERT INTO users (name, rg, cpf, data_de_nascimento, password) VALUES (?,?,?,?,?)",
+      [name, rg, cpf, dateOfBirth, hashedPassword]
     );
 
-    await database.run(
-      "INSERT INTO users (name, rg, cpf, data_de_nascimento, password, accountsId) VALUES (?,?,?,?,?,?)",
-      [name, rg, cpf, dateOfBirth, hashedPassword, account.lastID]
-    );
-
+    await database.run("INSERT INTO accounts (balance, userId) VALUES (?,?)", [
+      0,
+      user.lastID,
+    ]);
     response.status(201).json();
   }
 
