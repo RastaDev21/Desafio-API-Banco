@@ -46,10 +46,7 @@ class AccountsController {
   }
   async accountClosure(request, response) {
     const { accountNumber } = request.body;
-    const account = await knex("accounts")
-      .where({ id: accountNumber })
-      .select("balance")
-      .first();
+    const account = await knex("accounts").where({ id: accountNumber }).first();
 
     if (!account) {
       return response.status(404).json({
@@ -93,6 +90,28 @@ class AccountsController {
   }
   async transfer(request, response) {
     const { accountFrom, accountTo, value } = request.body;
+
+    const accountSending = await knex("accounts")
+      .where({ id: accountFrom })
+      .first();
+
+    const accountReceivable = await knex("accounts")
+      .where({ id: accountTo })
+      .first();
+
+    if (!accountSending) {
+      return response.status(404).json({
+        error:
+          "Você tentou fazer uma transferencia de uma conta que não existe.",
+      });
+    }
+
+    if (!accountReceivable) {
+      return response.status(404).json({
+        error:
+          "Você tentou fazer uma transferencia para uma conta que não existe, passe uma conta valida.",
+      });
+    }
 
     const { balance } = await knex("accounts")
       .where({ id: accountFrom })
