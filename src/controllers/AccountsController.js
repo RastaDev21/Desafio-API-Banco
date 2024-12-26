@@ -2,14 +2,14 @@ const knex = require("../database/knex");
 
 class AccountsController {
   async balance(request, response) {
-    const { id } = request.params;
+    const id = request.user.accountsId;
 
     const { balance } = await knex("accounts")
       .where({ id })
       .select("balance")
       .first();
 
-    return response.json(`Seu saldo atual é ${balance}`);
+    return response.json(balance);
   }
 
   async addMoney(request, response) {
