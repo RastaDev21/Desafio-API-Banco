@@ -12,8 +12,26 @@ class AccountsController {
     return response.json(balance);
   }
 
+  // async addMoney(request, response) {
+  //   const { value, accountNumber } = request.body;
+
+  //   await knex("accounts")
+  //     .where({ id: accountNumber })
+  //     .increment({ balance: value });
+
+  //   return response.json(
+  //     `Você adicionou ${value} na conta ${accountNumber}, com sucesso!`
+  //   );
+  // }
+
   async addMoney(request, response) {
     const { value, accountNumber } = request.body;
+
+    const account = await knex("accounts").where({ id: accountNumber }).first();
+
+    if (!account) {
+      return response.status(404).json({ error: "Conta inválida." });
+    }
 
     await knex("accounts")
       .where({ id: accountNumber })
@@ -24,15 +42,41 @@ class AccountsController {
     );
   }
 
-  async removeMoney(request, response) {
-    const { value, accountNumber } = request.body;
+  // async removeMoney(request, response) {
+  //   const { value, accountNumber } = request.body;
 
-    const { balance } = await knex("accounts")
+  //   const { balance } = await knex("accounts")
+  //     .where({ id: accountNumber })
+  //     .select("balance")
+  //     .first();
+
+  //   if (balance < value) {
+  //     return response.status(400).json({ error: "Saldo insuficiente." });
+  //   }
+
+  //   await knex("accounts")
+  //     .where({ id: accountNumber })
+  //     .decrement({ balance: value });
+
+  //   return response.json(
+  //     `Você retirou ${value} da conta ${accountNumber}, com sucesso!`
+  //   );
+  // }
+
+  async removeMoney(request, response) {
+    const { value } = request.body;
+    const { accountsId: accountNumber } = request.user; // Extraindo o ID da conta do usuário logado
+
+    const account = await knex("accounts")
       .where({ id: accountNumber })
       .select("balance")
       .first();
 
-    if (balance < value) {
+    if (!account) {
+      return response.status(404).json({ error: "Conta não encontrada." });
+    }
+
+    if (account.balance < value) {
       return response.status(400).json({ error: "Saldo insuficiente." });
     }
 
@@ -44,6 +88,7 @@ class AccountsController {
       `Você retirou ${value} da conta ${accountNumber}, com sucesso!`
     );
   }
+
   async accountClosure(request, response) {
     const { accountNumber } = request.body;
     const account = await knex("accounts").where({ id: accountNumber }).first();
@@ -88,8 +133,58 @@ class AccountsController {
 
     return response.json(accounts);
   }
+  // async transfer(request, response) {
+  //   const { accountFrom, accountTo, value } = request.body;
+
+  //   const accountSending = await knex("accounts")
+  //     .where({ id: accountFrom })
+  //     .first();
+
+  //   const accountReceivable = await knex("accounts")
+  //     .where({ id: accountTo })
+  //     .first();
+
+  //   if (!accountSending) {
+  //     return response.status(404).json({
+  //       error:
+  //         "Você tentou fazer uma transferencia de uma conta que não existe.",
+  //     });
+  //   }
+
+  //   if (!accountReceivable) {
+  //     return response.status(404).json({
+  //       error:
+  //         "Você tentou fazer uma transferencia para uma conta que não existe, passe uma conta valida.",
+  //     });
+  //   }
+
+  //   const { balance } = await knex("accounts")
+  //     .where({ id: accountFrom })
+  //     .select("balance")
+  //     .first();
+
+  //   if (balance < value) {
+  //     return response
+  //       .status(400)
+  //       .json({ error: "Saldo insuficiente para transferencia." });
+  //   }
+
+  //   await knex("accounts")
+  //     .where({ id: accountFrom })
+  //     .decrement({ balance: value });
+
+  //   await knex("accounts")
+  //     .where({ id: accountTo })
+  //     .increment({ balance: value });
+
+  //   return response.json(
+  //     `Você transferiu ${value} para a conta ${accountTo}, com sucesso!`
+  //   );
+  // }
+
   async transfer(request, response) {
-    const { accountFrom, accountTo, value } = request.body;
+    const { accountTo, value } = request.body;
+    const { accountsId: accountFrom } = request.user;
 
     const accountSending = await knex("accounts")
       .where({ id: accountFrom })
@@ -102,26 +197,23 @@ class AccountsController {
     if (!accountSending) {
       return response.status(404).json({
         error:
-          "Você tentou fazer uma transferencia de uma conta que não existe.",
+          "Você tentou fazer uma transferência de uma conta que não existe.",
       });
     }
 
     if (!accountReceivable) {
       return response.status(404).json({
         error:
-          "Você tentou fazer uma transferencia para uma conta que não existe, passe uma conta valida.",
+          "Você tentou fazer uma transferência para uma conta que não existe, passe uma conta válida.",
       });
     }
 
-    const { balance } = await knex("accounts")
-      .where({ id: accountFrom })
-      .select("balance")
-      .first();
+    const { balance } = accountSending;
 
     if (balance < value) {
       return response
         .status(400)
-        .json({ error: "Saldo insuficiente para transferencia." });
+        .json({ error: "Saldo insuficiente para transferência." });
     }
 
     await knex("accounts")
