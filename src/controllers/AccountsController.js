@@ -12,18 +12,6 @@ class AccountsController {
     return response.json(balance);
   }
 
-  // async addMoney(request, response) {
-  //   const { value, accountNumber } = request.body;
-
-  //   await knex("accounts")
-  //     .where({ id: accountNumber })
-  //     .increment({ balance: value });
-
-  //   return response.json(
-  //     `Você adicionou ${value} na conta ${accountNumber}, com sucesso!`
-  //   );
-  // }
-
   async addMoney(request, response) {
     const { value, accountNumber } = request.body;
 
@@ -42,30 +30,9 @@ class AccountsController {
     );
   }
 
-  // async removeMoney(request, response) {
-  //   const { value, accountNumber } = request.body;
-
-  //   const { balance } = await knex("accounts")
-  //     .where({ id: accountNumber })
-  //     .select("balance")
-  //     .first();
-
-  //   if (balance < value) {
-  //     return response.status(400).json({ error: "Saldo insuficiente." });
-  //   }
-
-  //   await knex("accounts")
-  //     .where({ id: accountNumber })
-  //     .decrement({ balance: value });
-
-  //   return response.json(
-  //     `Você retirou ${value} da conta ${accountNumber}, com sucesso!`
-  //   );
-  // }
-
   async removeMoney(request, response) {
     const { value } = request.body;
-    const { accountsId: accountNumber } = request.user; // Extraindo o ID da conta do usuário logado
+    const { accountsId: accountNumber } = request.user;
 
     const account = await knex("accounts")
       .where({ id: accountNumber })
@@ -90,7 +57,11 @@ class AccountsController {
   }
 
   async accountClosure(request, response) {
-    const { accountNumber } = request.body;
+    console.log("Corpo da requisição recebido:", request.body);
+    const { accountNumber, userId } = request.body;
+
+    console.log("Número da conta recebido:", accountNumber);
+
     const account = await knex("accounts").where({ id: accountNumber }).first();
 
     if (!account) {
@@ -99,6 +70,8 @@ class AccountsController {
       });
     }
 
+    console.log("Número da conta recebido:", accountNumber);
+
     if (account.balance > 0) {
       return response.status(400).json({
         error:
@@ -106,8 +79,9 @@ class AccountsController {
       });
     }
 
-    await knex("accounts").where({ id: accountNumber }).delete();
+    await knex("users").where({ id: userId }).delete();
 
+    console.log(`Conta ${accountNumber} fechada com sucesso.`);
     return response.json(`Conta ${accountNumber} fechada com sucesso.`);
   }
 
@@ -133,54 +107,6 @@ class AccountsController {
 
     return response.json(accounts);
   }
-  // async transfer(request, response) {
-  //   const { accountFrom, accountTo, value } = request.body;
-
-  //   const accountSending = await knex("accounts")
-  //     .where({ id: accountFrom })
-  //     .first();
-
-  //   const accountReceivable = await knex("accounts")
-  //     .where({ id: accountTo })
-  //     .first();
-
-  //   if (!accountSending) {
-  //     return response.status(404).json({
-  //       error:
-  //         "Você tentou fazer uma transferencia de uma conta que não existe.",
-  //     });
-  //   }
-
-  //   if (!accountReceivable) {
-  //     return response.status(404).json({
-  //       error:
-  //         "Você tentou fazer uma transferencia para uma conta que não existe, passe uma conta valida.",
-  //     });
-  //   }
-
-  //   const { balance } = await knex("accounts")
-  //     .where({ id: accountFrom })
-  //     .select("balance")
-  //     .first();
-
-  //   if (balance < value) {
-  //     return response
-  //       .status(400)
-  //       .json({ error: "Saldo insuficiente para transferencia." });
-  //   }
-
-  //   await knex("accounts")
-  //     .where({ id: accountFrom })
-  //     .decrement({ balance: value });
-
-  //   await knex("accounts")
-  //     .where({ id: accountTo })
-  //     .increment({ balance: value });
-
-  //   return response.json(
-  //     `Você transferiu ${value} para a conta ${accountTo}, com sucesso!`
-  //   );
-  // }
 
   async transfer(request, response) {
     const { accountTo, value } = request.body;
